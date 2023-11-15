@@ -9,7 +9,7 @@ Overview:
 
 Notes:
     - It uses the selenium web driver with the chromedriver.exe to create a headless Chrome browser and download all submissions.
-        (you may need to change the included chromedriver.exe to use the correct version from https://googlechromelabs.github.io/chrome-for-testing/ depending on your Chrome version)
+        (you will need to download the correct chromedriver.exe version for your Chrome browser version from https://googlechromelabs.github.io/chrome-for-testing/ )
     - It will automatically go through the DUO prompt and wait for you to accept it using the default authentication method.
     - Once it is finished, it will print "finished" in the console, and "downloads.zip" should be available in the folder.
 
