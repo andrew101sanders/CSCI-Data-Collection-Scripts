@@ -225,7 +225,7 @@ if __name__ == '__main__':
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[3]/d2l-input-search')))
 
     # only get CSCI courses
-    driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys("AIST")
+    driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys("CSCI")
     driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys(Keys.ENTER)
 
     # only get courses in which the user was an Instructor
