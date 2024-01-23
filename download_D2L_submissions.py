@@ -208,17 +208,17 @@ if __name__ == '__main__':
     driver = webdriver.Chrome(options=options, service = Service(executable_path))
     original_window = driver.current_window_handle
 
-    '''
-    # Go to homepage and load previously stored cookies if they exist
-    driver.get(home_url)
-    if isfile("cookies.pkl"):
-        cookies = pickle.load(open("cookies.pkl", "rb"))
-        for cookie in cookies:
-            driver.add_cookie(cookie)
-    driver.refresh()
-    sleep(1)
-    '''
-    # If cookies do not exist or session is expired, go through Duo auth process
+
+    # # Go to homepage and load previously stored cookies if they exist
+    # driver.get(home_url)
+    # if isfile("cookies.pkl"):
+    #     cookies = pickle.load(open("cookies.pkl", "rb"))
+    #     for cookie in cookies:
+    #         driver.add_cookie(cookie)
+    # driver.refresh()
+    # sleep(1)
+
+    # go through Duo auth process
     if driver.current_url != home_url:
         driver.get(login_url)
         driver.find_element(By.ID, 'userNameInput').send_keys(username)
@@ -233,11 +233,11 @@ if __name__ == '__main__':
     WebDriverWait(driver, 30).until(EC.url_to_be(home_url))
 
     # Dumping cookies so it doesn't need to login every time
-    cookies = driver.get_cookies()
+    # cookies = driver.get_cookies()
     # pickle.dump(cookies, open("cookies.pkl", "wb"))
 
-    for cookie in cookies:
-        s.cookies.set(cookie['name'], cookie['value'])
+    # for cookie in cookies:
+    #     s.cookies.set(cookie['name'], cookie['value'])
 
     # Wait for the page to load
     driver.get(advanced_course_search_url)
