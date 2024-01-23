@@ -3,38 +3,57 @@ Andrew Sanders
 ----------------------------
 
 Overview:
-    This script downloads all assignments of all D2L "CSCI" courses in which the user is an "Instructor" to the course.
+    Using your provided AU credentials, this script downloads all assignments of all D2L "CSCI" courses in which the user is an "Instructor" to the course.
     It uses a local downloads folder to download all assignments and deletes all irrelevant files based on file extension.
     When finished, it combines all downloaded files into "downloads.zip".
 
 Notes:
-    - It uses the selenium web driver with the chromedriver.exe to create a headless Chrome browser and download all submissions.
-        (you will need to download the correct chromedriver.exe version for your Chrome browser version from https://googlechromelabs.github.io/chrome-for-testing/ )
+    - It uses the selenium webdriver with the chromedriver.exe to create a headless chrome browser and download all submissions.
+        (download the correct version from https://googlechromelabs.github.io/chrome-for-testing/ depending on your chrome version)
     - It will automatically go through the DUO prompt and wait for you to accept it using the default authentication method.
-    - Once it is finished, it will print "finished" in the console, and "downloads.zip" should be available in the folder.
+    - Once it is finished, it will print "finished" in the console and "downloads.zip" should be available in the folder.
 
-This script is adapted from a similar script that targeted Georgia Southern University's "Folio" system, which is the same D2L system AU uses.
+Running Instructions:
+    1. Download and Install all requirements
+       a. Make sure to put the chromedriver in the same folder as this script
+    2. Change the username and password strings (lines 40 and 41) to your AU credentials
+    3. Run this script ("Python download_D2L_submissions.py")
+    4. Wait until downloads.zip is produced. This will happen the same time "finished" is written to the console.
+
+Tested with:
+Windows 11 23H2
+Python 3.12.1 https://www.python.org/downloads/release/python-3121/ (Windows Installer 64-bit)
+Chrome version 120.0.6099.225
+chromedriver version 120.0.6099.224 https://googlechromelabs.github.io/chrome-for-testing/ (put in the same folder as this script)
+
+Python package requirements (use in terminal after downloading and installing Python):
+pip install beautifulsoup4==4.12.3
+pip install Requests==2.31.0
+pip install selenium==4.17.2
+
+
+This script is adapted from a similar script that targetted Georgia Southern University's "Folio" system, which is the same D2L system AU uses.
 
 '''
 
 # Replace with your credentials and preferences
 username = 'username' # just username, no email (i.e. 'asanders4' not 'asanders4@augusta.edu')
-password = 'password'
+password = 'password' # The password gets used to login to D2L
 
 if username == 'username' or password == 'password':
     print("Make sure to replace 'username' and 'password' in the python script before running!")
-    print("(also I hope that you accidentally left 'username' or 'password' as their default values and those aren't your actual credentials)")
+    print("(also I hope that you accidentally left 'username' or 'password' as their defaults values and those aren't your actually credentials)")
     exit()
 
 from time import sleep
-from getpass import getuser
+#from getpass import getuser
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
-import pickle
+#import pickle
 from os.path import isfile
 from os import getcwd,listdir
 import os
@@ -46,7 +65,7 @@ import re
 import io
 import tokenize
 from bs4 import BeautifulSoup
-import ast
+#import ast
 
 
 executable_path = f'{getcwd()}/chromedriver.exe'
@@ -225,7 +244,7 @@ if __name__ == '__main__':
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[3]/d2l-input-search')))
 
     # only get CSCI courses
-    driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys("CSCI")
+    driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys("AIST")
     driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys(Keys.ENTER)
 
     # only get courses in which the user was an Instructor
