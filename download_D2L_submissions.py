@@ -50,7 +50,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 #import pickle
@@ -69,6 +69,7 @@ from bs4 import BeautifulSoup
 
 
 executable_path = f'{getcwd()}/chromedriver.exe'
+print(f"Chromedriver path: {executable_path}")
 
 hostname_url = 'https://lms.augusta.edu'
 home_url = f'{hostname_url}/d2l/home'
@@ -219,18 +220,25 @@ if __name__ == '__main__':
     # sleep(1)
 
     # go through Duo auth process
+    print("Attempting DUO Authentication")
     if driver.current_url != home_url:
+        print("Going to login url")
         driver.get(login_url)
+        print("Inputting username and password")
         driver.find_element(By.ID, 'userNameInput').send_keys(username)
         driver.find_element(By.ID, 'passwordInput').send_keys(password)
+        print("Pressing enter")
         driver.find_element(By.ID, 'passwordInput').send_keys(Keys.ENTER)
         driver.switch_to.default_content()
+    print("Waiting for DUO Authentication")
     WebDriverWait(driver, 50).until(EC.url_to_be(home_url) or EC.url_to_be(session_expired_url))
+    print("DUO Authentication appears successful")
 
     if driver.current_url == session_expired_url:
         driver.get(home_url)
 
     WebDriverWait(driver, 30).until(EC.url_to_be(home_url))
+    print("Successfully redirected to home url")
 
     # Dumping cookies so it doesn't need to login every time
     # cookies = driver.get_cookies()
@@ -240,115 +248,185 @@ if __name__ == '__main__':
     #     s.cookies.set(cookie['name'], cookie['value'])
 
     # Wait for the page to load
+    print("Going to advanced course search")
     driver.get(advanced_course_search_url)
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[3]/d2l-input-search')))
+    print("At advanced course search")
 
     # only get CSCI courses
+    print("Entering CSCI into search bar")
     driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys("CSCI")
+    print("Sending Enter Key")
     driver.find_element(By.XPATH, "/html/body/div[2]/div/div[3]/d2l-input-search").send_keys(Keys.ENTER)
 
     # only get courses in which the user was an Instructor
-    driver.find_element(By.XPATH, "/html/body/div[2]/div/form/div[1]/div/div/div/div/div[1]/div/select").click()
-    driver.find_element(By.XPATH, "/html/body/div[2]/div/form/div[1]/div/div/div/div/div[1]/div/select/option[2]").click()
+    print("Finding course role dropdown menu")
+    select = Select(driver.find_element(By.XPATH, "/html/body/div[2]/div/form/div[1]/div/div/div/div/div[1]/div/select"))
+    print("Clicking element with 'Instructor' role")
+    select.select_by_visible_text("Instructor")
+    print("Successfully clicked 'Instructor' Role")
 
     # little hack to load all courses
+    print("Executing script to set '100 per page' to actually use 1000")
     driver.execute_script("document.evaluate('/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]', document, null, XPathResult.ANY_TYPE, null).iterateNext().value = 1000;")
+    print("Executed script, waiting 2 seconds")
     sleep(2)
+    print("Finding dropdown menu containing the 'x per page' options")
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select')))
     sleep(2)
+    print("Clicking dropdown menu containing the 'x per page' options")
     driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').click()
+    print("Waiting for options to load")
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]')))
+    print("Clicking '100 per page' dropdown menu option, which will load 1000 courses")
     driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]').click()
+    print("Clicked '100 per page' dropdown menu option, waiting")
     sleep(1)
 
     # loop through table of courses and add each course name and id to a list
+    print("Looping through courses that contain a 'd2l-link', i.e., course name is a link")
     courses = []
     table = driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/d2l-table-wrapper/table').find_elements(By.CLASS_NAME, 'd2l-link')
+    print(f"Total found courses in table: {len(table)}")
     for row in table:
         course_name = row.text
         course_id = row.get_attribute("href").split("/")[-1]
+        print(f"\tFound course: {course_name}, course_id: {course_id}")
         courses.append((course_name, course_id))
 
     # visit each course's page and get all of the assignments
+    print("Going through each course and going through each assignment")
     all_assignments = []
     for course in courses:
         course_name = course[0]
         course_id = course[1]
+        print(f"\tGoing to assignments page of course name: {course_name}")
         driver.get(f"{hostname_url}/d2l/lms/dropbox/admin/folders_manage.d2l?ou={course_id}&d2l_stateScopes=%7B%221%22%3A%5B%22gridpagenum%22,%22search%22,%22pagenum%22%5D,%222%22%3A%5B%22lcs%22%5D,%223%22%3A%5B%22grid%22,%22pagesize%22,%22htmleditor%22,%22hpg%22%5D%7D&d2l_stateGroups=%5B%22grid%22,%22gridpagenum%22%5D&d2l_statePageId=223&d2l_state_grid=%7B%22Name%22%3A%22grid%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageSize%22%3A%222000%22,%22SortField%22%3A%22DropBoxId%22,%22SortDir%22%3A0%7D%7D%5D%7D&d2l_state_gridpagenum=%7B%22Name%22%3A%22gridpagenum%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22pagenum%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageNum%22%3A1%7D%7D%5D%7D&d2l_change=1")
+        print(f"\tAt assignments page, waiting .5 seconds")
         sleep(.5)
 
         # If there are no assignments, go to next course
         try:
+            print("\tChecking to see if there is an assignments table")
             table = driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div[2]/form/div/div/div/div/d2l-table-wrapper/table/tbody')
         except:
+            print("\tNo assignments found, going to next course")
             continue
 
+        print("\tFound assignments table")
         # find all elements with "d2l-link" in the class name. This is only contained within the assignment links. I'm not aware of it being contained anywhere else.
+        print("\tFinding all elements with 'd2l-link', which correspond to the assignments")
         table_inner_rows = table.find_elements(By.CLASS_NAME, 'd2l-link')
+        print("\tFound all elements")
 
         # go through each row in table on the assignments page
+        print(f"\tTotal found rows in table: {len(table_inner_rows)}")
         for row in table_inner_rows:
             # If a row doesn't have text, like a new category(?), skip it
+            print("\t\tChecking if row has text")
             if row.text == '':
+                print("\t\tRow doesn't have text, going to next row")
                 continue
+            print("\t\tRow has text, indicating an assignment")
+            print("\t\tGetting number of evaluating submissions")
             evaluated_assignment_string = row.find_elements(By.XPATH, './parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/*')[4].text
+            print(f"\t\tValue of evaluated assignment string: {evaluated_assignment_string}")
             if evaluated_assignment_string != '':
+                print("\t\tString not empty, indicating a graded assignment")
+                print("\t\tEvaluating string")
                 evaluated_assignment = eval(evaluated_assignment_string)
+                print("\t\tEvaluated string successfully")
                 if evaluated_assignment > 0:
+                    print("\t\tEvaluated assignment is > 0, indicating there are evaluated submissions")
                     assignment_id = row.get_attribute("href").split("?db=")[1].split("&")[0]
+                    print(f"\t\tAssignment id: {assignment_id}")
                     all_assignments.append((course[0], course[1], assignment_id))
+                else:
+                    print("\t\tEvaluated assignment is <= 0, indicating no evaluated submissions")
+            else:
+                print("\t\tString empty, indicating not a graded assignment")
+            print()
+        print(f"\tFinishing going through assignments of course: {course_id}")
 
     incrementing_unique_id = 0
-
     # for each assignment, go to the page and download all submissions
+    print("Going through each assignment to download submissions")
+    print(f"Total Assignments: {len(all_assignments)}")
     for assignment in all_assignments:
         course_name = assignment[0]
         course_id = assignment[1]
         assignment_id = assignment[2]
+        print(f"\tGoing to submission page of course name: {course_name}, course id: {course_id}, assignment id: {assignment_id}")
         driver.get(f'{hostname_url}/d2l/lms/dropbox/admin/mark/folder_submissions_files.d2l?d2l_isfromtab=1&db={assignment_id}&ou={course_id}&d2l_change=0')
+        print(f"\tSuccessfully navigated, waiting .1 seconds")
         sleep(.1)
 
         # little hack to load all submissions
+        print("\tExecuting script to set '200 per page' to actually use 1000")
         driver.execute_script("document.evaluate('/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select/option[5]', document, null, XPathResult.ANY_TYPE, null).iterateNext().value = 1000;")
+        print("\tExecuted script, waiting .1 seconds")
         sleep(.1)
 
         # get grades
         # https://lms.augusta.edu/d2l/lms/grades/admin/enter/grade_item_edit.d2l?objectId=597438&ou=398537&dlg=true&d2l_body_type=2
+        print("\tExecuting script to get D2L access token from localStorage")
         access_token = driver.execute_script("return JSON.parse(localStorage['D2L.Fetch.Tokens'])['*:*:*']['access_token']")
+        print("\tExecuted script")
+        print("\tSetting selenium cookies for requests session")
         d2lSecureSessionVal = driver.get_cookies()[0]['value']
         d2lSessionVal = driver.get_cookies()[1]['value']
         s.headers['Authorization'] = f'Bearer {access_token}'
+        cookies = driver.get_cookies()
+        for cookie in cookies:
+            s.cookies.set(cookie['name'], cookie['value'])
+        print("\tUsing token to get grade object id")
         response = s.get(f'https://83ea0a02-fd06-4d2d-8623-48ed62e25340.activities.api.brightspace.com/old/activities/6606_2000_{assignment_id}/usages/{course_id}')
         associated_grade_object_id = response.json()['links'][17]['href'].split('/')[-1]
+        print("\tDone")
+        print("\tUsing grade object id to get assignment grades")
         response = s.get(f'{hostname_url}/d2l/lms/grades/admin/enter/grade_item_edit.d2l?objectId={associated_grade_object_id}&ou={course_id}&dlg=true&d2l_body_type=2')
         soup = BeautifulSoup(response.text, 'html.parser')
         student_id_assignment_grades = {}
+        print("\tParsing Grades")
         for row in soup.find('table', id='z_p').find_all('tr')[1:]:
             student_id = row.find('input').get('value').split('_')[1]
             assignment_grade = row.find('d2l-input-number').get('value')
             student_id_assignment_grades[student_id] = assignment_grade
+        print("\tParsed student grades for assignment")
+        print(f"\tTotal student grades for assignment: {len(student_id_assignment_grades)}")
         table_path = '/html/body/div/div[2]/div[3]/div/div/div/form/div/div[4]/d2l-table-wrapper/table'
 
         # click on top-left select all box and click download
+        print("\tClicking '200 per page' dropdown box option, which will load 1000")
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select').click()
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select/option[5]')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select/option[5]').click()
+
+        print("\tClicking 'select all' box")
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/d2l-table-wrapper/table/tbody/tr[1]/th[1]/input')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/d2l-table-wrapper/table/tbody/tr[1]/th[1]/input').click()
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[1]/tbody/tr/td/table/tbody/tr/td/div/d2l-overflow-group/d2l-button-subtle[1]')))
 
         # Wait for download window to open and click download
+        print("\tClicking 'Download' and waiting for new window to pop up")
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[1]/tbody/tr/td/table/tbody/tr/td/div/d2l-overflow-group/d2l-button-subtle[1]').click()
         WebDriverWait(driver, 30).until(EC.number_of_windows_to_be(2))
+        print("\tNew window appeared, waiting .2 seconds")
         sleep(.2)
+        print("\tSwitching to new window")
         driver.switch_to.window(driver.window_handles[1])
+        print("\tSwitching to frame")
         driver.switch_to.frame(driver.find_element(By.XPATH, '/html/frameset/frame[2]'))
+        print("\tWaiting for download to be ready")
         WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a')))
         href = driver.find_element(By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a').get_attribute('href')
 
         # Downloads zip and removes all irrelevant files
+        print("\tDownload ready, downloading to /downloads/")
         download_file(s, href, f"{getcwd()}/downloads/{course_id}_{course_name}_{assignment_id}.zip")
+        print("\tDownload complete")
+        print("\tUnzipping")
         zip_path = Path(f"{getcwd()}/downloads/{course_id}_{course_name}_{assignment_id}.zip")
         z = zipfile.ZipFile(zip_path)
         z.extractall(f"{getcwd()}/downloads/{course_id}_{course_name}_{assignment_id}/")
@@ -358,8 +436,9 @@ if __name__ == '__main__':
         
         if os.path.isfile(os.path.join(zip_folder, "index.html")):
             os.remove(os.path.join(zip_folder, "index.html"))
-
+        print("\tRenaming all files in folder")
         directory = listdir(zip_folder)
+        print(f"\tNumber of submissions downloaded from assignment: {len(directory)}")
         for filename in directory:
             split_filename = filename.split('-')
             file_student_id = split_filename[0]
@@ -371,9 +450,11 @@ if __name__ == '__main__':
 
                 output_name = f'{grade}%---{incrementing_unique_id}---{file_assignment_id}---{file_rest_of_filename}'
                 incrementing_unique_id+=1
-
+                print(f"\t\tRenaming file to {output_name}")
                 os.rename(os.path.join(zip_folder, filename), os.path.join(zip_folder, output_name))
                 #os.remove(os.path.join(zip_folder, filename))
+            else:
+                print(f"\t\tNo associated grade with file")
 
         directory = listdir(zip_folder)
         for filename in directory:
@@ -390,18 +471,23 @@ if __name__ == '__main__':
             #         with open(os.path.join(zip_folder, filename), 'w') as fileobj:
             #             fileobj.write(cleaned_python_code)
 
-        
+        print("\tDeleting original files")
         zip_directory(zip_folder, zip_path)
         shutil.rmtree(zip_folder)
         
         # close download window and go back to main window
+        print("\tWaiting .5 seconds")
         sleep(.5)
+        print("\tClosing extra window and going back to main window")
         driver.switch_to.default_content()
         driver.close()
         driver.switch_to.window(driver.window_handles[0])
         sleep(.1)
+        print("\tDone with assignment")
+        print()
 
     # combine all downloads together into downloads.zip
+    print("Zipping all files together")
     zip_directory(f"{getcwd()}/downloads", f"{getcwd()}/downloads.zip")
     
     print("finished")
