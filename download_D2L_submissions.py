@@ -266,6 +266,13 @@ if __name__ == '__main__':
     select.select_by_visible_text("Instructor")
     print("Successfully clicked 'Instructor' Role")
 
+    # get courses from all semesters
+    print("Finding semester dropdown menu")
+    select = Select(driver.find_element(By.XPATH, "/html/body/div[2]/div/form/div[1]/div/div/div/div/div[2]/div/select"))
+    print("Clicking element with 'All' semester")
+    select.select_by_visible_text("All")
+    print("Successfully clicked 'All' semester")
+
     # little hack to load all courses
     print("Executing script to set '100 per page' to actually use 1000")
     driver.execute_script("document.evaluate('/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]', document, null, XPathResult.ANY_TYPE, null).iterateNext().value = 1000;")
