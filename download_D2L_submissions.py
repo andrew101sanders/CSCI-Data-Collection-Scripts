@@ -53,7 +53,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
-from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 #import pickle
 from os.path import isfile
 from os import getcwd,listdir
@@ -232,13 +232,13 @@ if __name__ == '__main__':
         driver.find_element(By.ID, 'passwordInput').send_keys(Keys.ENTER)
         driver.switch_to.default_content()
     print("Waiting for DUO Authentication")
-    WebDriverWait(driver, 50).until(EC.url_to_be(home_url) or EC.url_to_be(session_expired_url))
+    WebDriverWait(driver, 500).until(EC.url_to_be(home_url) or EC.url_to_be(session_expired_url))
     print("DUO Authentication appears successful")
 
     if driver.current_url == session_expired_url:
         driver.get(home_url)
 
-    WebDriverWait(driver, 30).until(EC.url_to_be(home_url))
+    WebDriverWait(driver, 300).until(EC.url_to_be(home_url))
     print("Successfully redirected to home url")
 
     # Dumping cookies so it doesn't need to login every time
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     # Wait for the page to load
     print("Going to advanced course search")
     driver.get(advanced_course_search_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[3]/d2l-input-search')))
+    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[3]/d2l-input-search')))
     print("At advanced course search")
 
     # only get CSCI courses
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     print("Executed script, waiting 2 seconds")
     sleep(2)
     print("Finding dropdown menu containing the 'x per page' options")
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select')))
+    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select')))
     sleep(3)
     print("Checking if downdown menu is visible, indicating that there are courses found")
     if not driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').is_displayed():
@@ -294,7 +294,7 @@ if __name__ == '__main__':
         print("There was an issue clicking the dropdown menu but it should have worked. Try running again.")
         quit()
     print("Waiting for options to load")
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]')))
+    WebDriverWait(driver, 100).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]')))
     print("Clicking '100 per page' dropdown menu option, which will load 1000 courses")
     driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]').click()
     print("Clicked '100 per page' dropdown menu option, waiting")
@@ -425,20 +425,20 @@ if __name__ == '__main__':
 
         # click on top-left select all box and click download
         print("\tClicking '200 per page' dropdown box option, which will load 1000")
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select')))
+        WebDriverWait(driver, 300).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select').click()
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select/option[5]')))
+        WebDriverWait(driver, 300).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select/option[5]')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/select/option[5]').click()
 
         print("\tClicking 'select all' box")
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/d2l-table-wrapper/table/tbody/tr[1]/th[1]/input')))
+        WebDriverWait(driver, 300).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/d2l-table-wrapper/table/tbody/tr[1]/th[1]/input')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/d2l-table-wrapper/table/tbody/tr[1]/th[1]/input').click()
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[1]/tbody/tr/td/table/tbody/tr/td/div/d2l-overflow-group/d2l-button-subtle[1]')))
+        WebDriverWait(driver, 300).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[1]/tbody/tr/td/table/tbody/tr/td/div/d2l-overflow-group/d2l-button-subtle[1]')))
 
         # Wait for download window to open and click download
         print("\tClicking 'Download' and waiting for new window to pop up")
         driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div/form/div/div/div[2]/div[3]/div/table[1]/tbody/tr/td/table/tbody/tr/td/div/d2l-overflow-group/d2l-button-subtle[1]').click()
-        WebDriverWait(driver, 30).until(EC.number_of_windows_to_be(2))
+        WebDriverWait(driver, 300).until(EC.number_of_windows_to_be(2))
         print("\tNew window appeared, waiting .2 seconds")
         sleep(.2)
         print("\tSwitching to new window")
@@ -446,7 +446,15 @@ if __name__ == '__main__':
         print("\tSwitching to frame")
         driver.switch_to.frame(driver.find_element(By.XPATH, '/html/frameset/frame[2]'))
         print("\tWaiting for download to be ready")
-        WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a')))
+        try:
+            WebDriverWait(driver, 300).until(EC.element_to_be_clickable((By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a')))
+        except TimeoutException:
+            print("\tTimed out waiting for download, going to next assignment...")
+            print("\tClosing extra window and going back to main window")
+            driver.switch_to.default_content()
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            print()
         href = driver.find_element(By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a').get_attribute('href')
 
         # Downloads zip and removes all irrelevant files
@@ -527,3 +535,4 @@ if __name__ == '__main__':
     # Close the browser
 
     driver.quit()
+
