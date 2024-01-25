@@ -463,6 +463,7 @@ if __name__ == '__main__':
             file_student_name = split_filename[2]
             file_rest_of_filename = " ".join(str(item) for item in split_filename[3:])
             if file_student_id in student_id_assignment_grades:
+                print(f"\t\tThere is an associated grade with file")
                 grade = student_id_assignment_grades[file_student_id]
 
                 output_name = f'{grade}%---{incrementing_unique_id}---{file_assignment_id}---{file_rest_of_filename}'
@@ -471,7 +472,11 @@ if __name__ == '__main__':
                 os.rename(os.path.join(zip_folder, filename), os.path.join(zip_folder, output_name))
                 #os.remove(os.path.join(zip_folder, filename))
             else:
-                print(f"\t\tNo associated grade with file")
+                print(f"\t\tThere is no associated grade with file")
+                output_name = f'NA%---{incrementing_unique_id}---{file_assignment_id}---{file_rest_of_filename}'
+                incrementing_unique_id+=1
+                print(f"\t\tRenaming file to {output_name}")
+                os.rename(os.path.join(zip_folder, filename), os.path.join(zip_folder, output_name))
 
         # directory = listdir(zip_folder)
         # for filename in directory:
