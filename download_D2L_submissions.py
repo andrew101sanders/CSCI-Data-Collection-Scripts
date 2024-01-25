@@ -447,7 +447,7 @@ if __name__ == '__main__':
         driver.switch_to.frame(driver.find_element(By.XPATH, '/html/frameset/frame[2]'))
         print("\tWaiting for download to be ready")
         try:
-            WebDriverWait(driver, 300).until(EC.element_to_be_clickable((By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a')))
+            WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a')))
         except TimeoutException:
             print("\tTimed out waiting for download, going to next assignment...")
             print("\tClosing extra window and going back to main window")
@@ -455,6 +455,7 @@ if __name__ == '__main__':
             driver.close()
             driver.switch_to.window(driver.window_handles[0])
             print()
+            continue
         href = driver.find_element(By.XPATH,'/html/body/div/div[1]/div[3]/div/div/div/form/div/div/span/a').get_attribute('href')
 
         # Downloads zip and removes all irrelevant files
