@@ -205,7 +205,7 @@ if __name__ == '__main__':
             }
     options.add_experimental_option("prefs",prefs)
     
-    options.add_argument("--headless")
+    #options.add_argument("--headless")
     driver = webdriver.Chrome(options=options, service = Service(executable_path))
     original_window = driver.current_window_handle
 
@@ -317,7 +317,7 @@ if __name__ == '__main__':
             print("\tChecking to see if there is an assignments table")
             table = driver.find_element(By.XPATH, '/html/body/div[2]/div/div[2]/div/div/div[2]/form/div/div/div/div/d2l-table-wrapper/table/tbody')
         except:
-            print("\tNo assignments found, going to next course")
+            print("\tNo assignments table found, going to next course")
             continue
 
         print("\tFound assignments table")
@@ -333,27 +333,36 @@ if __name__ == '__main__':
             print("\t\tChecking if row has text")
             if row.text == '':
                 print("\t\tRow doesn't have text, going to next row")
+                print()
                 continue
-            print("\t\tRow has text, indicating an assignment")
-            print("\t\tGetting number of evaluating submissions")
-            evaluated_assignment_string = row.find_elements(By.XPATH, './parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/*')[4].text
-            print(f"\t\tValue of evaluated assignment string: {evaluated_assignment_string}")
-            if evaluated_assignment_string != '':
-                print("\t\tString not empty, indicating a graded assignment")
+            print(f"\t\tRow has text: {row.text}")
+            print("\t\tChecking if link goes to assignment")
+            if len(row.get_attribute("title")) < 4 or row.get_attribute("title")[0:4] != 'View':
+                    print("\t\tRow is not assignment, continuing...")
+                    print()
+                    continue
+            
+            print("\t\tGetting number of completed submissions")
+            completed_assignment_string = row.find_elements(By.XPATH, './parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/parent::*/*')[3].text
+            print(f"\t\tValue of evaluated assignment string: {completed_assignment_string}")
+            if completed_assignment_string != '':
+                print("\t\tString not empty, indicating an assignment")
                 print("\t\tEvaluating string")
-                evaluated_assignment = eval(evaluated_assignment_string)
-                print("\t\tEvaluated string successfully")
-                if evaluated_assignment > 0:
-                    print("\t\tEvaluated assignment is > 0, indicating there are evaluated submissions")
+                completed_assignment = eval(completed_assignment_string)
+                print(f"\t\tEvaluated string successfully: {completed_assignment}")
+                if completed_assignment > 0:
+                    print("\t\tCompleted assignment is > 0, indicating there are assignment submissions")
                     assignment_id = row.get_attribute("href").split("?db=")[1].split("&")[0]
                     print(f"\t\tAssignment id: {assignment_id}")
                     all_assignments.append((course[0], course[1], assignment_id))
                 else:
-                    print("\t\tEvaluated assignment is <= 0, indicating no evaluated submissions")
+                    print("\t\tompleted assignment is <= 0, indicating no assignment submissions")
             else:
-                print("\t\tString empty, indicating not a graded assignment")
+                print("\t\tString empty, indicating not an assignment")
+            print("\tGoing to next row...")
             print()
         print(f"\tFinishing going through assignments of course: {course_id}")
+        print()
 
     incrementing_unique_id = 0
     # for each assignment, go to the page and download all submissions
@@ -395,10 +404,11 @@ if __name__ == '__main__':
         soup = BeautifulSoup(response.text, 'html.parser')
         student_id_assignment_grades = {}
         print("\tParsing Grades")
-        for row in soup.find('table', id='z_p').find_all('tr')[1:]:
-            student_id = row.find('input').get('value').split('_')[1]
-            assignment_grade = row.find('d2l-input-number').get('value')
-            student_id_assignment_grades[student_id] = assignment_grade
+        if soup.find('table', id='z_p') is not None:
+            for row in soup.find('table', id='z_p').find_all('tr')[1:]:
+                student_id = row.find('input').get('value').split('_')[1]
+                assignment_grade = row.find('d2l-input-number').get('value')
+                student_id_assignment_grades[student_id] = assignment_grade
         print("\tParsed student grades for assignment")
         print(f"\tTotal student grades for assignment: {len(student_id_assignment_grades)}")
         table_path = '/html/body/div/div[2]/div[3]/div/div/div/form/div/div[4]/d2l-table-wrapper/table'
@@ -463,11 +473,11 @@ if __name__ == '__main__':
             else:
                 print(f"\t\tNo associated grade with file")
 
-        directory = listdir(zip_folder)
-        for filename in directory:
-            if not any(filename.endswith(ext) for ext in allowed_extensions):
-                # If not, delete the file
-                os.remove(os.path.join(zip_folder, filename))
+        # directory = listdir(zip_folder)
+        # for filename in directory:
+        #     if not any(filename.endswith(ext) for ext in allowed_extensions):
+        #         # If not, delete the file
+        #         os.remove(os.path.join(zip_folder, filename))
             # elif filename.endswith('.py'): # if python file, remove comments
             #     if os.path.isfile(os.path.join(zip_folder, filename)):
             #         with open(os.path.join(zip_folder, filename), 'r') as fileobj:
