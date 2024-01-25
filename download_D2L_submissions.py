@@ -53,6 +53,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import ElementClickInterceptedException
 #import pickle
 from os.path import isfile
 from os import getcwd,listdir
@@ -280,14 +281,18 @@ if __name__ == '__main__':
     sleep(2)
     print("Finding dropdown menu containing the 'x per page' options")
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select')))
-    sleep(2)
+    sleep(3)
     print("Checking if downdown menu is visible, indicating that there are courses found")
     if not driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').is_displayed():
         print("Dropdown menu is not displayed, which mean the search result failed. 'CSCI' and 'Instructor' seemed to not return any results")
         print("Ending program")
         quit()
     print("Clicking dropdown menu containing the 'x per page' options")
-    driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').click()
+    try:
+        driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').click()
+    except ElementClickInterceptedException:
+        print("There was an issue clicking the dropdown menu but it should have worked. Try running again.")
+        quit()
     print("Waiting for options to load")
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select/option[4]')))
     print("Clicking '100 per page' dropdown menu option, which will load 1000 courses")
@@ -359,7 +364,7 @@ if __name__ == '__main__':
                     print("\t\tCompleted assignment is > 0, indicating there are assignment submissions")
                     assignment_id = row.get_attribute("href").split("?db=")[1].split("&")[0]
                     print(f"\t\tAssignment id: {assignment_id}")
-                    all_assignments.append((course[0], course[1], assignment_id))
+                    all_assignments.append((course_name, course_id, assignment_id))
                 else:
                     print("\t\tompleted assignment is <= 0, indicating no assignment submissions")
             else:
@@ -467,6 +472,7 @@ if __name__ == '__main__':
             file_assignment_id = split_filename[1]
             file_student_name = split_filename[2]
             file_rest_of_filename = " ".join(str(item) for item in split_filename[3:]).replace('/', '_').replace('\\', '_')
+            
             if file_student_id in student_id_assignment_grades:
                 print(f"\t\tThere is an associated grade with file")
                 grade = student_id_assignment_grades[file_student_id]
