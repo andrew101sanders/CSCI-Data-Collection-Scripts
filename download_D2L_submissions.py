@@ -281,6 +281,11 @@ if __name__ == '__main__':
     print("Finding dropdown menu containing the 'x per page' options")
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select')))
     sleep(2)
+    print("Checking if downdown menu is visible, indicating that there are courses found")
+    if not driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').is_displayed():
+        print("Dropdown menu is not displayed, which mean the search result failed. 'CSCI' and 'Instructor' seemed to not return any results")
+        print("Ending program")
+        quit()
     print("Clicking dropdown menu containing the 'x per page' options")
     driver.find_element(By.XPATH, '/html/body/div[2]/div/div[5]/div/div/div[2]/div/div/div[2]/div/select').click()
     print("Waiting for options to load")
