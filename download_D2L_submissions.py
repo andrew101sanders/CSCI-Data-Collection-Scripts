@@ -310,7 +310,7 @@ if __name__ == '__main__':
     print("Going through each course and going through each assignment")
     all_assignments = []
     for course in courses:
-        course_name = course[0]
+        course_name = course[0].replace('/', '_').replace('\\', '_')
         course_id = course[1]
         print(f"\tGoing to assignments page of course name: {course_name}")
         driver.get(f"{hostname_url}/d2l/lms/dropbox/admin/folders_manage.d2l?ou={course_id}&d2l_stateScopes=%7B%221%22%3A%5B%22gridpagenum%22,%22search%22,%22pagenum%22%5D,%222%22%3A%5B%22lcs%22%5D,%223%22%3A%5B%22grid%22,%22pagesize%22,%22htmleditor%22,%22hpg%22%5D%7D&d2l_stateGroups=%5B%22grid%22,%22gridpagenum%22%5D&d2l_statePageId=223&d2l_state_grid=%7B%22Name%22%3A%22grid%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageSize%22%3A%222000%22,%22SortField%22%3A%22DropBoxId%22,%22SortDir%22%3A0%7D%7D%5D%7D&d2l_state_gridpagenum=%7B%22Name%22%3A%22gridpagenum%22,%22Controls%22%3A%5B%7B%22ControlId%22%3A%7B%22ID%22%3A%22grid_main%22%7D,%22StateType%22%3A%22pagenum%22,%22Key%22%3A%22%22,%22Name%22%3A%22gridFolders%22,%22State%22%3A%7B%22PageNum%22%3A1%7D%7D%5D%7D&d2l_change=1")
@@ -466,7 +466,7 @@ if __name__ == '__main__':
             file_student_id = split_filename[0]
             file_assignment_id = split_filename[1]
             file_student_name = split_filename[2]
-            file_rest_of_filename = " ".join(str(item) for item in split_filename[3:])
+            file_rest_of_filename = " ".join(str(item) for item in split_filename[3:]).replace('/', '_').replace('\\', '_')
             if file_student_id in student_id_assignment_grades:
                 print(f"\t\tThere is an associated grade with file")
                 grade = student_id_assignment_grades[file_student_id]
