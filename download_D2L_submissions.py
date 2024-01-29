@@ -416,9 +416,12 @@ if __name__ == '__main__':
         print("\tParsing Grades")
         if soup.find('table', id='z_p') is not None:
             for row in soup.find('table', id='z_p').find_all('tr')[1:]:
-                student_id = row.find('input').get('value').split('_')[1]
-                assignment_grade = row.find('d2l-input-number').get('value')
-                student_id_assignment_grades[student_id] = assignment_grade
+                try:
+                    student_id = row.find('input').get('value').split('_')[1]
+                    assignment_grade = row.find('d2l-input-number').get('value')
+                    student_id_assignment_grades[student_id] = assignment_grade
+                except:
+                    print(f"\tIssue on row: {row.text}, going to next row")
         print("\tParsed student grades for assignment")
         print(f"\tTotal student grades for assignment: {len(student_id_assignment_grades)}")
         table_path = '/html/body/div/div[2]/div[3]/div/div/div/form/div/div[4]/d2l-table-wrapper/table'
@@ -536,4 +539,3 @@ if __name__ == '__main__':
     # Close the browser
 
     driver.quit()
-
